@@ -7,8 +7,8 @@ import re
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n','--network', help="Network to scan in CIDR or something nmap likes")
-    parser.add_argument('-p','--ports',  help="Ports like nmap takes them")
-    parser.add_argument('-s','--showmisses', action="store_true", help="Use if you want to see hosts where nothing was detected.")
+    parser.add_argument('-p','--ports', default="80,443,22,445,88", help="Ports like nmap takes them. Defaults to 80,443,22,445,88.")
+    parser.add_argument('-s','--showmisses', action="store_true", help="Use if you want to see hosts where nothing suggesting up was detected.")
     args = parser.parse_args()
     
     nmap_out = subprocess.Popen(['nmap',f'{args.network}','-Pn','-p',f'{args.ports}'], 
