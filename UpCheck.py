@@ -7,7 +7,7 @@ import re
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n','--network', help="Network to scan in CIDR or something nmap likes")
-    parser.add_argument('-p','--ports', help="Ports like nmap takes them")
+    parser.add_argument('-p','--ports',  help="Ports like nmap takes them")
     parser.add_argument('-s','--showmisses', action="store_true", help="Use if you want to see hosts where nothing was detected.")
     args = parser.parse_args()
     
@@ -27,7 +27,8 @@ def main():
              print(f"{ip} appears up due to one of the scanned ports reporting open ({args.ports}).")
              continue
         if "closed" in target:
-            print(f"{ip} appears up due to one of the scanned ports reporting closed ({args.ports}).")      
+            print(f"{ip} appears up due to one of the scanned ports reporting closed ({args.ports}).")  
+            continue    
         if "unfiltered" in target:
             print(f"{ip} appears up due to one of the scanned ports reporting unfiltered ({args.ports}).")          
         else:
