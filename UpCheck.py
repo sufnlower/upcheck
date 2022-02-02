@@ -25,11 +25,9 @@ def main():
         ip = target[0:13]
         if "open" in target:
              print(f"{ip} appears up due to one of the scanned ports reporting open ({args.ports}).")
-             continue
-        if "closed" in target:
-            print(f"{ip} appears up due to one of the scanned ports reporting closed ({args.ports}).")  
-            continue    
-        if "unfiltered" in target:
+        elif "closed" in target:
+            print(f"{ip} appears up due to one of the scanned ports reporting closed ({args.ports}).")   
+        elif "unfiltered" in target:
             print(f"{ip} appears up due to one of the scanned ports reporting unfiltered ({args.ports}).")          
         else:
             if(args.showmisses):
