@@ -9,9 +9,14 @@ def main():
     parser.add_argument('-n','--network', help="Network to scan in CIDR or something nmap likes")
     parser.add_argument('-p','--ports', default="80,443,22,445,88", help="Ports like nmap takes them. Defaults to 80,443,22,445,88.")
     parser.add_argument('-s','--showmisses', action="store_true", help="Use if you want to see hosts where nothing suggesting up was detected.")
+    parser.add_argument('-sT','--useconnectscan', action="store_true", help="Use a connect scan, good for SOCKS proxy")
     args = parser.parse_args()
     
-    nmap_out = subprocess.Popen(['nmap',f'{args.network}','-Pn','-p',f'{args.ports}'], 
+    connect = ''
+    if(args.useconnectscan):
+    	connect = '-sT'
+    print("Running the nmap command...")
+    nmap_out = subprocess.Popen(['nmap',f'{args.network}','-Pn','-p',f'{args.ports}',connect], 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT)
     nmap_out.wait()
