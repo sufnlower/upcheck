@@ -1,5 +1,6 @@
 # upcheck
 Small wrapper around nmap. Port scans a network and concisely reports which machines are up with available info.
+The point of this tool is to display the results, one target machine per line.
 
 ```
 usage: UpCheck.py [-h] [-n NETWORK] [-p PORTS] [-s]
@@ -12,5 +13,6 @@ optional arguments:
                         Ports like nmap takes them. Defaults to 80,443,22,445,88.
   -s, --showmisses      Use if you want to see hosts where nothing suggesting up
                         was detected.
-
+  -sT, --useconnectscan
+  			Use a connect scan, good for SOCKS proxy
 ```

@@ -14,9 +14,11 @@ def main():
     
     connect = ''
     if(args.useconnectscan):
-    	connect = '-sT'
+    	cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}','-sT']
+    else:
+    	cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}']
     print("Running the nmap command...")
-    nmap_out = subprocess.Popen(['nmap',f'{args.network}','-Pn','-p',f'{args.ports}',connect], 
+    nmap_out = subprocess.Popen(cmd, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT)
     nmap_out.wait()
@@ -27,13 +29,21 @@ def main():
     targets = stdoutStr.split("Nmap scan report for ")
 
     for target in targets[1:]:
-        ip = target[0:13]
-        if "open" in target:
-             print(f"{ip} appears up due to one of the scanned ports reporting open ({args.ports}).")
-        elif "closed" in target:
-            print(f"{ip} appears up due to one of the scanned ports reporting closed ({args.ports}).")   
-        elif "unfiltered" in target:
-            print(f"{ip} appears up due to one of the scanned ports reporting unfiltered ({args.ports}).")          
+        ip = target[:target.index("\\n")]
+        results = target[target.index("SERVICE\\n")+9:]
+        result_lines = results.split("\\n")
+        openPorts = []
+        closedPorts = []
+        unfilteredPorts = []
+        for line in result_lines:
+        	if "open" in line:
+        		openPorts.append(line[:line.index("/")])
+        	if "closed" in line:
+        		closedPorts.append(line[:line.index("/")])
+        	if "unfiltered" in line:
+        		unfilteredPorts.append(line[:line.index("/")])
+        if len(openPorts) + len(closedPorts) + len(unfilteredPorts) != 0:
+        	print(f"{ip} appears up due to the following: Open {openPorts}. Closed {closedPorts}. Unfiltered {unfilteredPorts}")
         else:
             if(args.showmisses):
                 print(f"Nothing detected for {ip}")
