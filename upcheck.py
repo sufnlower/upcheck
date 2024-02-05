@@ -10,50 +10,60 @@ def main():
     parser.add_argument('-p','--ports', default="80,139,443,22,445,88", help="Ports like nmap takes them. Defaults to 80,443,22,445,88.")
     parser.add_argument('-s','--showmisses', action="store_true", help="Use if you want to see hosts where nothing suggesting up was detected.")
     parser.add_argument('-sT','--useconnectscan', action="store_true", help="Use a connect scan, good for SOCKS proxy")
+    parser.add_argument('-oA','--outputresults', default="upcheck_out", help="save output as")
     args = parser.parse_args()
     
     connect = ''
     if(args.useconnectscan):
-    	cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}','-sT']
+        cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}','-sT', '-vv']
     else:
-    	cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}','-oA','whole_training_network']
-    print("Running the nmap command...")
+        cmd = ['nmap',f'{args.network}','-Pn','-p',f'{args.ports}','-oA',args.outputresults,"-vv"]
+    print("Running the nmap command... The concise output will come at the end.")
+    
+    stdoutStr = ""
+    
     nmap_out = subprocess.Popen(cmd, 
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT)
+    while True:
+        output = nmap_out.stdout.readline()
+        if output == b'' and nmap_out.poll() is not None:
+            break
+        if output:
+            stdoutStr += output.decode()
+            print(output.decode().strip(), end='\n', flush=True)
     nmap_out.wait()
-    stdout,stderr = nmap_out.communicate()
-    
-    stdoutStr = str(stdout)
 
     targets = stdoutStr.split("Nmap scan report for ")
-
     count=0
-
+    
+    print("=================")
+    print("Concise Output")
+    print("=================")
+    
     for target in targets[1:]:
-        ip = target[:target.index("\\n")]
-        results = target[target.index("SERVICE\\n")+9:]
-        result_lines = results.split("\\n")
+        ip = re.findall(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b',target)[0]
+        results = target[target.index("REASON\n")+9:]
+        result_lines = results.split("\n")
         openPorts = []
         closedPorts = []
         unfilteredPorts = []
         for line in result_lines:
-        	if "open" in line:
-        		openPorts.append(line[:line.index("/")])
-        	if "closed" in line:
-        		closedPorts.append(line[:line.index("/")])
-        	if "unfiltered" in line:
-        		unfilteredPorts.append(line[:line.index("/")])
+            port = re.match(r'(\d*)/', line)
+            if "open" in line and port is not None:
+                openPorts.append(port.group(1))
+            if "closed" in line and port is not None:
+                closedPorts.append(port.group(1))
+            if "unfiltered" in line and port is not None:
+                unfilteredPorts.append(port.group(1))
         if len(openPorts) + len(closedPorts) + len(unfilteredPorts) != 0:
-        	print(f"{ip} appears up due to the following: Open {openPorts}. Closed {closedPorts}. Unfiltered {unfilteredPorts}")
-        	count = count + 1
+            print(f"{ip} appears up due to the following: Open {openPorts}. Closed {closedPorts}. Unfiltered {unfilteredPorts}")
+            count = count + 1
         else:
             if(args.showmisses):
                 print(f"Nothing detected for {ip}")
        
-    if stderr != None:
-        print(stderr)
-    else:
-    	print(f"Total of {count} target machines found up.")
+    print(f"Total of {count} target machines found up.")
+
 if __name__ == "__main__":
     main()
